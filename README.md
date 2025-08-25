@@ -22,7 +22,8 @@ Clubs & Activities: Student club memberships and achievements
 
 Application Processing: Handle student applications and requests
 
-Prerequisites
+## Prerequisites
+
 Python 3.9+
 
 Oracle Database 19c or higher
