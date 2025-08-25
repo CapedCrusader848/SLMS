@@ -1,7 +1,8 @@
 # SLMS
 A comprehensive web-based Student Lifecycle Management System (SLMS) built with Flask and Oracle Database. This system manages various aspects of university administration including student records, faculty information, course management, attendance tracking, hostel allocation, mess subscriptions, and more.
 
-Features Multi-Role Access: Different interfaces for students, faculty, and administrators
+Features
+Multi-Role Access: Different interfaces for students, faculty, and administrators
 
 Student Management: Complete student lifecycle from admission to graduation
 
@@ -21,8 +22,7 @@ Clubs & Activities: Student club memberships and achievements
 
 Application Processing: Handle student applications and requests
 
-## Prerequisites:
-
+Prerequisites
 Python 3.9+
 
 Oracle Database 19c or higher
@@ -30,3 +30,6 @@ Oracle Database 19c or higher
 Oracle Instant Client (for cx_Oracle)
 
 Flask and related packages
+
+
+
