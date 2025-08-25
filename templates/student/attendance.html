@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Records{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-clipboard-check"></i> Attendance Records</h2>
+    </div>
+    <div class="col-md-4">
+        <form method="GET" action="{{ url_for('student_attendance') }}" class="d-flex">
+            <select class="form-select me-2" name="course_id" onchange="this.form.submit()">
+                <option value="">All Courses</option>
+                {% for course_id, title in courses.items() %}
+                <option value="{{ course_id }}" {% if selected_course == course_id %}selected{% endif %}>{{ course_id }} - {{ title }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </form>
+    </div>
+</div>
+
+<!-- Attendance Summary Card -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">Attendance Summary</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4 text-center">
+                <div class="display-4 fw-bold 
+                    {% if overall_attendance >= 90 %}text-success
+                    {% elif overall_attendance >= 75 %}text-primary
+                    {% elif overall_attendance >= 65 %}text-warning
+                    {% else %}text-danger{% endif %}">
+                    {{ overall_attendance }}%
+                </div>
+                <div class="text-muted">Overall Attendance</div>
+                <div class="progress mt-2">
+                    <div class="progress-bar 
+                        {% if overall_attendance >= 90 %}bg-success
+                        {% elif overall_attendance >= 75 %}bg-primary
+                        {% elif overall_attendance >= 65 %}bg-warning
+                        {% else %}bg-danger{% endif %}" 
+                        role="progressbar" 
+                        style="width: {{ overall_attendance }}%;" 
+                        aria-valuenow="{{ overall_attendance }}" 
+                        aria-valuemin="0" 
+                        aria-valuemax="100">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="display-4 fw-bold text-primary">{{ courses|length }}</div>
+                <div class="text-muted">Total Courses</div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="display-4 fw-bold {% if overall_attendance >= 75 %}text-success{% else %}text-danger{% endif %}">
+                    {% if overall_attendance >= 75 %}
+                    <i class="fas fa-check-circle"></i>
+                    {% else %}
+                    <i class="fas fa-times-circle"></i>
+                    {% endif %}
+                </div>
+                <div class="text-muted">Exam Eligibility</div>
+                <div class="badge {% if overall_attendance >= 75 %}bg-success{% else %}bg-danger{% endif %} mt-2">
+                    {% if overall_attendance >= 75 %}
+                    Eligible for Exams
+                    {% else %}
+                    Not Eligible for Exams
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Status Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h5 class="card-title">Excellent</h5>
+                <p class="card-text">≥ 90%</p>
+                <i class="fas fa-star fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h5 class="card-title">Good</h5>
+                <p class="card-text">75% - 89%</p>
+                <i class="fas fa-thumbs-up fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body text-center">
+                <h5 class="card-title">Warning</h5>
+                <p class="card-text">65% - 74%</p>
+                <i class="fas fa-exclamation-triangle fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center">
+                <h5 class="card-title">Critical</h5>
+                <p class="card-text">< 65%</p>
+                <i class="fas fa-exclamation-circle fa-2x"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Records Table -->
+<div class="card">
+    <div class="card-header bg-info text-white">
+        <h5 class="card-title mb-0">Course-wise Attendance</h5>
+    </div>
+    <div class="card-body">
+        {% if attendance_records|length == 0 %}
+        <div class="alert alert-info text-center">
+            No attendance records found for the selected course.
+        </div>
+        {% else %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Course ID</th>
+                        <th>Course Title</th>
+                        <th>Semester</th>
+                        <th>Year</th>
+                        <th>Total Classes</th>
+                        <th>Present</th>
+                        <th>Absent</th>
+                        <th>Attendance %</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in attendance_records %}
+                    <tr>
+                        <td>{{ record.course_id }}</td>
+                        <td>{{ courses[record.course_id] }}</td>
+                        <td>{{ record.semester }}</td>
+                        <td>{{ record.year }}</td>
+                        <td>{{ record.total_classes }}</td>
+                        <td>{{ record.present }}</td>
+                        <td>{{ record.total_classes - record.present }}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <span class="me-2">{{ record.attendance_percentage }}%</span>
+                                <div class="progress flex-grow-1" style="height: 6px;">
+                                    <div class="progress-bar 
+                                        {% if record.attendance_percentage >= 90 %}bg-success
+                                        {% elif record.attendance_percentage >= 75 %}bg-primary
+                                        {% elif record.attendance_percentage >= 65 %}bg-warning
+                                        {% else %}bg-danger{% endif %}" 
+                                        role="progressbar" 
+                                        style="width: {{ record.attendance_percentage }}%;" 
+                                        aria-valuenow="{{ record.attendance_percentage }}" 
+                                        aria-valuemin="0" 
+                                        aria-valuemax="100">
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge {% if record.attendance_percentage >= 75 %}bg-success{% else %}bg-danger{% endif %}">
+                                {% if record.attendance_percentage >= 75 %}
+                                Eligible
+                                {% else %}
+                                Not Eligible
+                                {% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if pagination.page == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('student_attendance', page=pagination.prev_num, course_id=selected_course) }}" tabindex="-1">Previous</a>
+                </li>
+                
+                {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                    {% if page_num %}
+                        <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('student_attendance', page=page_num, course_id=selected_course) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                <li class="page-item {% if pagination.page == pagination.pages %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('student_attendance', page=pagination.next_num, course_id=selected_course) }}">Next</a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<!-- Attendance Guidelines -->
+<div class="card mt-4">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="card-title mb-0">Attendance Guidelines</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info">
+            <h5 class="alert-heading"><i class="fas fa-info-circle"></i> Important Information</h5>
+            <p>A minimum of 75% attendance is required to be eligible for examinations.</p>
+            <hr>
+            <p class="mb-0">If your attendance falls below 75% in any course, you may need to apply for condonation or risk being debarred from the examination.</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <h5><i class="fas fa-list-ul"></i> Attendance Rules</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><i class="fas fa-check text-success me-2"></i> Attendance is recorded for each class session</li>
+                    <li class="list-group-item"><i class="fas fa-check text-success me-2"></i> Medical leaves require proper documentation</li>
+                    <li class="list-group-item"><i class="fas fa-check text-success me-2"></i> Attendance percentage is calculated per course</li>
+                    <li class="list-group-item"><i class="fas fa-check text-success me-2"></i> Overall attendance affects scholarship eligibility</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h5><i class="fas fa-lightbulb"></i> Tips to Maintain Good Attendance</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><i class="fas fa-arrow-right text-primary me-2"></i> Set alarms for early morning classes</li>
+                    <li class="list-group-item"><i class="fas fa-arrow-right text-primary me-2"></i> Keep track of your attendance regularly</li>
+                    <li class="list-group-item"><i class="fas fa-arrow-right text-primary me-2"></i> Inform faculty in advance for planned absences</li>
+                    <li class="list-group-item"><i class="fas fa-arrow-right text-primary me-2"></i> Submit medical certificates promptly when applicable</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        console.log('Attendance page loaded');
+    });
+</script>
+{% endblock %}
